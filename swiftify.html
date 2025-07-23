@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swiftify - Write Flutter UI like SwiftUI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eef5ff',
+                            100: '#d9e8ff',
+                            200: '#bcd7ff',
+                            300: '#8cbeff',
+                            400: '#5599ff',
+                            500: '#3378ff',
+                            600: '#1a56f5',
+                            700: '#1443e0',
+                            800: '#1737b5',
+                            900: '#19348f',
+                            950: '#142057',
+                        },
+                        secondary: {
+                            50: '#eefbff',
+                            100: '#d7f4ff',
+                            200: '#b8ecff',
+                            300: '#85e2ff',
+                            400: '#4aceff',
+                            500: '#1fb1ff',
+                            600: '#0692ff',
+                            700: '#0077e6',
+                            800: '#0762bb',
+                            900: '#0c5498',
+                            950: '#0c345d',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+        
+        .code-gradient {
+            background: linear-gradient(180deg, rgba(30,41,59,0) 0%, rgba(30,41,59,0.8) 100%);
+        }
+        
+        .dark .code-gradient {
+            background: linear-gradient(180deg, rgba(15,23,42,0) 0%, rgba(15,23,42,0.8) 100%);
+        }
+        
+        .code-window {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border-radius: 0.75rem;
+            overflow: hidden;
+        }
+        
+        .dark .code-window {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+        }
+        
+        .code-header {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+        }
+        
+        .window-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .window-control {
+            width: 0.75rem;
+            height: 0.75rem;
+            border-radius: 50%;
+        }
+        
+        .code-content {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            padding: 1rem;
+            overflow-x: auto;
+        }
+        
+        /* Syntax highlighting */
+        .keyword { color: #FF79C6; }
+        .string { color: #F1FA8C; }
+        .method { color: #50FA7B; }
+        .comment { color: #6272A4; }
+        .property { color: #8BE9FD; }
+        .number { color: #BD93F9; }
+        
+        .dark .keyword { color: #FF79C6; }
+        .dark .string { color: #F1FA8C; }
+        .dark .method { color: #50FA7B; }
+        .dark .comment { color: #6272A4; }
+        .dark .property { color: #8BE9FD; }
+        .dark .number { color: #BD93F9; }
+        
+        .light .keyword { color: #D73A49; }
+        .light .string { color: #4d75a3; }
+        .light .method { color: #6F42C1; }
+        .light .comment { color: #6A737D; }
+        .light .property { color: #005CC5; }
+        .light .number { color: #005CC5; }
+        
+        .feature-card {
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #3378ff 0%, #1fb1ff 100%);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #3378ff 0%, #1fb1ff 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased bg-gray-50 text-gray-900 dark:bg-slate-900 dark:text-white">
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shadow-sm">
+        <div class="container mx-auto px-4 md:px-6 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <div class="h-9 w-9 rounded-lg gradient-bg flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                    </div>
+                    <span class="text-xl font-bold">Swiftify</span>
+                </div>
+                
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#features" class="text-gray-600 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 font-medium">Features</a>
+                    <a href="#how-it-works" class="text-gray-600 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 font-medium">How it works</a>
+                    <a href="#contribute" class="text-gray-600 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 font-medium">Contribute</a>
+                    <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                        </svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Mobile menu -->
+            <div id="mobile-menu" class="hidden md:hidden mt-4 pb-2">
+                <div class="flex flex-col space-y-4">
+                    <a href="#features" class="text-gray-600 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 font-medium">Features</a>
+                    <a href="#how-it-works" class="text-gray-600 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 font-medium">How it works</a>
+                    <a href="#contribute" class="text-gray-600 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 font-medium">Contribute</a>
+                    <button id="mobile-theme-toggle" class="flex items-center text-gray-600 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 font-medium">
+                        <span class="dark:hidden">Switch to dark mode</span>
+                        <span class="hidden dark:block">Switch to light mode</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="pt-32 pb-16 md:pt-40 md:pb-24 overflow-hidden">
+        <div class="container mx-auto px-4 md:px-6">
+            <div class="flex flex-col lg:flex-row items-center gap-12">
+                <div class="lg:w-1/2">
+                    <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+                        Write Flutter UI <span class="gradient-text">like SwiftUI</span>
+                    </h1>
+                    <p class="text-xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
+                        Swiftify brings elegant, chainable modifiers to your Flutter widgets, making your code cleaner and more expressive.
+                    </p>
+                    <div class="flex flex-wrap gap-4">
+                        <a href="#" class="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors shadow-lg shadow-primary-500/20">
+                            Get Started
+                        </a>
+                        <a href="#" class="px-6 py-3 border border-gray-300 dark:border-gray-700 hover:border-primary-500 dark:hover:border-primary-500 rounded-lg font-medium transition-colors flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"></path>
+                            </svg>
+                            View on GitHub
+                        </a>
+                    </div>
+                </div>
+                <div class="lg:w-1/2 relative">
+                    <div class="code-window bg-white dark:bg-slate-800 w-full max-w-lg mx-auto">
+                        <div class="code-header bg-gray-100 dark:bg-slate-700">
+                            <div class="window-controls">
+                                <div class="window-control bg-red-400"></div>
+                                <div class="window-control bg-yellow-400"></div>
+                                <div class="window-control bg-green-400"></div>
+                            </div>
+                            <div class="ml-auto text-xs text-gray-500 dark:text-gray-400">swiftify_example.dart</div>
+                        </div>
+                        <div class="code-content bg-white dark:bg-slate-800 light dark:dark">
+                            <pre><code><span class="comment">// Traditional Flutter</span>
+<span class="keyword">Text</span>(<span class="string">'Hello'</span>),
+
+<span class="comment">// With Swiftify</span>
+<span class="keyword">Text</span>(<span class="string">'Hello'</span>)
+  .<span class="method">fontSize</span>(<span class="number">18</span>)
+  .<span class="method">bold</span>()
+  .<span class="method">color</span>(<span class="property">Colors</span>.<span class="property">green</span>)
+  .<span class="method">padding</span>(<span class="property">EdgeInsets</span>.<span class="method">all</span>(<span class="number">12</span>));</code></pre>
+                        </div>
+                    </div>
+                    
+                    <!-- Decorative elements -->
+                    <div class="absolute -z-10 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gradient-to-br from-primary-500/10 to-secondary-500/10 rounded-full blur-3xl"></div>
+                    <div class="absolute -z-10 -bottom-10 -right-10 w-40 h-40 bg-secondary-500/20 rounded-full blur-2xl"></div>
+                    <div class="absolute -z-10 -top-10 -left-10 w-40 h-40 bg-primary-500/20 rounded-full blur-2xl"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-20 bg-white dark:bg-slate-800">
+        <div class="container mx-auto px-4 md:px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-bold mb-4">Features</h2>
+                <p class="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                    Swiftify transforms how you write Flutter UI code, making it more intuitive and maintainable.
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Feature 1 -->
+                <div class="feature-card bg-gray-50 dark:bg-slate-700/50 p-6 rounded-xl">
+                    <div class="h-12 w-12 bg-primary-100 dark:bg-primary-900/30 rounded-lg flex items-center justify-center mb-4 text-primary-600 dark:text-primary-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">Cleaner Flutter Code</h3>
+                    <p class="text-gray-600 dark:text-gray-300">
+                        Reduce nesting and improve readability with a clean, chainable syntax that makes your code more maintainable.
+                    </p>
+                </div>
+                
+                <!-- Feature 2 -->
+                <div class="feature-card bg-gray-50 dark:bg-slate-700/50 p-6 rounded-xl">
+                    <div class="h-12 w-12 bg-secondary-100 dark:bg-secondary-900/30 rounded-lg flex items-center justify-center mb-4 text-secondary-600 dark:text-secondary-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">SwiftUI-style Modifier Chaining</h3>
+                    <p class="text-gray-600 dark:text-gray-300">
+                        Apply multiple styling properties in a fluent, chainable way just like you would in SwiftUI.
+                    </p>
+                </div>
+                
+                <!-- Feature 3 -->
+                <div class="feature-card bg-gray-50 dark:bg-slate-700/50 p-6 rounded-xl">
+                    <div class="h-12 w-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center mb-4 text-green-600 dark:text-green-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">Open Source & Community-Driven</h3>
+                    <p class="text-gray-600 dark:text-gray-300">
+                        Built by the community, for the community. Contribute, suggest features, and help shape the future.
+                    </p>
+                </div>
+                
+                <!-- Feature 4 -->
+                <div class="feature-card bg-gray-50 dark:bg-slate-700/50 p-6 rounded-xl">
+                    <div class="h-12 w-12 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center mb-4 text-amber-600 dark:text-amber-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">Easy to Extend</h3>
+                    <p class="text-gray-600 dark:text-gray-300">
+                        Create your own modifiers and extensions to fit your project's specific needs and coding style.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How it Works Section -->
+    <section id="how-it-works" class="py-20 bg-gray-50 dark:bg-slate-900">
+        <div class="container mx-auto px-4 md:px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-bold mb-4">How It Works</h2>
+                <p class="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                    Swiftify uses Dart extensions to add modifier methods to Flutter widgets, allowing for a more fluent API.
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Traditional Flutter -->
+                <div class="bg-white dark:bg-slate-800 rounded-xl overflow-hidden shadow-lg">
+                    <div class="bg-red-100 dark:bg-red-900/30 py-3 px-4">
+                        <h3 class="font-semibold text-red-800 dark:text-red-300">Traditional Flutter</h3>
+                    </div>
+                    <div class="p-6">
+                        <div class="code-window">
+                            <div class="code-content bg-gray-50 dark:bg-slate-900 light dark:dark rounded-lg">
+                                <pre><code><span class="keyword">Container</span>(
+  <span class="property">padding</span>: <span class="property">EdgeInsets</span>.<span class="method">all</span>(<span class="number">16.0</span>),
+  <span class="property">decoration</span>: <span class="keyword">BoxDecoration</span>(
+    <span class="property">color</span>: <span class="property">Colors</span>.<span class="property">blue</span>,
+    <span class="property">borderRadius</span>: <span class="property">BorderRadius</span>.<span class="property">circular</span>(<span class="number">8.0</span>),
+  ),
+  <span class="property">child</span>: <span class="keyword">Text</span>(
+    <span class="string">'Hello, Flutter!'</span>,
+    <span class="property">style</span>: <span class="keyword">TextStyle</span>(
+      <span class="property">fontSize</span>: <span class="number">18.0</span>,
+      <span class="property">fontWeight</span>: <span class="property">FontWeight</span>.<span class="property">bold</span>,
+      <span class="property">color</span>: <span class="property">Colors</span>.<span class="property">white</span>,
+    ),
+  ),
+)</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Swiftify Flutter -->
+                <div class="bg-white dark:bg-slate-800 rounded-xl overflow-hidden shadow-lg">
+                    <div class="bg-primary-100 dark:bg-primary-900/30 py-3 px-4">
+                        <h3 class="font-semibold text-primary-800 dark:text-primary-300">With Swiftify</h3>
+                    </div>
+                    <div class="p-6">
+                        <div class="code-window">
+                            <div class="code-content bg-gray-50 dark:bg-slate-900 light dark:dark rounded-lg">
+                                <pre><code><span class="keyword">Text</span>(<span class="string">'Hello, Flutter!'</span>)
+  .<span class="method">fontSize</span>(<span class="number">18.0</span>)
+  .<span class="method">bold</span>()
+  .<span class="method">color</span>(<span class="property">Colors</span>.<span class="property">white</span>)
+  .<span class="method">padding</span>(<span class="property">EdgeInsets</span>.<span class="method">all</span>(<span class="number">16.0</span>))
+  .<span class="method">background</span>(
+    <span class="property">color</span>: <span class="property">Colors</span>.<span class="property">blue</span>,
+    <span class="property">borderRadius</span>: <span class="number">8.0</span>
+  )</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-16 max-w-3xl mx-auto">
+                <div class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-lg">
+                    <h3 class="text-xl font-semibold mb-4">How Swiftify Works Under the Hood</h3>
+                    <p class="text-gray-600 dark:text-gray-300 mb-4">
+                        Swiftify leverages Dart's extension methods to add new functionality to existing Flutter widgets without modifying their source code.
+                    </p>
+                    <div class="code-window">
+                        <div class="code-content bg-gray-50 dark:bg-slate-900 light dark:dark rounded-lg">
+                            <pre><code><span class="comment">// Example of a Swiftify extension</span>
+<span class="keyword">extension</span> <span class="property">TextModifiers</span> <span class="keyword">on</span> <span class="property">Text</span> {
+  <span class="property">Text</span> <span class="method">fontSize</span>(<span class="keyword">double</span> size) {
+    <span class="keyword">return</span> <span class="property">Text</span>(
+      <span class="keyword">this</span>.data!,
+      <span class="property">style</span>: (<span class="keyword">this</span>.style ?? <span class="property">TextStyle</span>()).<span class="method">copyWith</span>(
+        <span class="property">fontSize</span>: size,
+      ),
+    );
+  }
+  
+  <span class="property">Text</span> <span class="method">bold</span>() {
+    <span class="keyword">return</span> <span class="property">Text</span>(
+      <span class="keyword">this</span>.data!,
+      <span class="property">style</span>: (<span class="keyword">this</span>.style ?? <span class="property">TextStyle</span>()).<span class="method">copyWith</span>(
+        <span class="property">fontWeight</span>: <span class="property">FontWeight</span>.<span class="property">bold</span>,
+      ),
+    );
+  }
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contribute Section -->
+    <section id="contribute" class="py-20 bg-white dark:bg-slate-800 relative overflow-hidden">
+        <div class="container mx-auto px-4 md:px-6 relative z-10">
+            <div class="max-w-3xl mx-auto text-center">
+                <svg class="h-16 w-16 mx-auto mb-6 text-gray-700 dark:text-gray-300" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"></path>
+                </svg>
+                <h2 class="text-3xl font-bold mb-4">Join the project</h2>
+                <p class="text-xl text-gray-600 dark:text-gray-300 mb-8">
+                    Help shape the future of expressive Flutter UI.
+                </p>
+                <div class="flex flex-wrap justify-center gap-4">
+                    <a href="#" class="px-6 py-3 bg-gray-800 hover:bg-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600 text-white font-medium rounded-lg transition-colors flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"></path>
+                        </svg>
+                        Star on GitHub
+                    </a>
+                    <a href="#" class="px-6 py-3 border border-gray-300 dark:border-gray-700 hover:border-primary-500 dark:hover:border-primary-500 rounded-lg font-medium transition-colors">
+                        View Documentation
+                    </a>
+                </div>
+                
+                <div class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="feature-card bg-gray-50 dark:bg-slate-700/50 p-6 rounded-xl">
+                        <div class="h-12 w-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center mb-4 text-purple-600 dark:text-purple-400 mx-auto">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <h3 class="font-semibold mb-2 text-center">Report Issues</h3>
+                        <p class="text-gray-600 dark:text-gray-300 text-sm text-center">
+                            Found a bug or have a feature request? Open an issue on GitHub.
+                        </p>
+                    </div>
+                    <div class="feature-card bg-gray-50 dark:bg-slate-700/50 p-6 rounded-xl">
+                        <div class="h-12 w-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center mb-4 text-green-600 dark:text-green-400 mx-auto">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                        </div>
+                        <h3 class="font-semibold mb-2 text-center">Submit PRs</h3>
+                        <p class="text-gray-600 dark:text-gray-300 text-sm text-center">
+                            Contribute code, documentation, or examples through pull requests.
+                        </p>
+                    </div>
+                    <div class="feature-card bg-gray-50 dark:bg-slate-700/50 p-6 rounded-xl">
+                        <div class="h-12 w-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mb-4 text-blue-600 dark:text-blue-400 mx-auto">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
+                            </svg>
+                        </div>
+                        <h3 class="font-semibold mb-2 text-center">Join Discussions</h3>
+                        <p class="text-gray-600 dark:text-gray-300 text-sm text-center">
+                            Participate in GitHub discussions to help shape the roadmap.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Decorative elements -->
+        <div class="absolute -z-10 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gradient-to-br from-primary-500/5 to-secondary-500/5 rounded-full blur-3xl"></div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-12 bg-gray-50 dark:bg-slate-900 border-t border-gray-200 dark:border-gray-800">
+        <div class="container mx-auto px-4 md:px-6">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="flex items-center space-x-3 mb-6 md:mb-0">
+                    <div class="h-9 w-9 rounded-lg gradient-bg flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                    </div>
+                    <span class="text-xl font-bold">Swiftify</span>
+                </div>
+                <div class="flex space-x-6">
+                    <a href="#" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">
+                        <span class="sr-only">GitHub</span>
+                        <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"></path>
+                        </svg>
+                    </a>
+                    <a href="#" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">
+                        <span class="sr-only">Twitter</span>
+                        <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84"></path>
+                        </svg>
+                    </a>
+                    <a href="#" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">
+                        <span class="sr-only">Discord</span>
+                        <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"></path>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+            <div class="mt-8 pt-8 border-t border-gray-200 dark:border-gray-800">
+                <p class="text-center text-gray-500 dark:text-gray-400 text-sm">
+                    © 2023 Swiftify. All rights reserved.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        const mobileThemeToggle = document.getElementById('mobile-theme-toggle');
+        const html = document.documentElement;
+        
+        // Check for saved theme preference or use system preference
+        const savedTheme = localStorage.getItem('theme');
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
+        if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
+            html.classList.add('dark');
+        }
+        
+        function toggleTheme() {
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+        
+        themeToggle.addEventListener('click', toggleTheme);
+        mobileThemeToggle.addEventListener('click', toggleTheme);
+        
+        // Mobile menu toggle
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+        
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+                
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                    
+                    // Close mobile menu if open
+                    if (!mobileMenu.classList.contains('hidden')) {
+                        mobileMenu.classList.add('hidden');
+                    }
+                }
+            });
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9634e5d3d299c91f',t:'MTc1MzIwNzg1Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
